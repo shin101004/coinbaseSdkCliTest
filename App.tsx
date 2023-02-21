@@ -1,65 +1,67 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import './shim';
+import React, {useEffect} from 'react';
 import {
+  Button,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native';
-
+import MetaMaskSDK from '@metamask/sdk';
+import {Linking} from 'react-native';
+import BackgroundTimer from 'react-native-background-timer';
 import {
   Colors,
-  DebugInstructions,
   Header,
   LearnMoreLinks,
-  ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+// import { configure } from "@coinbase/wallet-mobile-sdk";
+// import { WalletMobileSDKEVMProvider } from "@coinbase/wallet-mobile-sdk/build/WalletMobileSDKEVMProvider";
 
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  };
+
+  // const provider = new WalletMobileSDKEVMProvider({
+  //   jsonRpcUrl: "https://goerli.infura.io/v3/e43885183522441b846318ad8a3060ca",
+  // });
+
+  // configure({
+  //   callbackURL: new URL("https://myappxyz.com/wsegue"),
+  //   hostURL: new URL("https://wallet.coinbase.com/wsegue"),
+  //   hostPackageName: "org.toshi",
+  // });
+
+  // const getCoinbase = async () => {
+  //   const address = await provider.request({
+  //     method: "eth_requestAccounts",
+  //     params: [],
+  //   });
+  //   console.log(address);
+  // };
+
+  const MMSDK = new MetaMaskSDK({
+    openDeeplink: link => {
+      Linking.openURL(link); // Use React Native Linking method or your favourite way of opening deeplinks
+    },
+    timer: BackgroundTimer, // To keep the app alive once it goes to background
+    dappMetadata: {
+      name: 'My App', // The name of your application
+      url: 'https://myapp.com', // The url of your website
+    },
+  });
+
+  const ethereum = MMSDK.getProvider();
+
+  const accounts = async () => {
+    const res = await ethereum.request({method: 'eth_requestAccounts'});
+    console.log(res);
   };
 
   return (
@@ -76,20 +78,8 @@ function App(): JSX.Element {
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+          <Button title="metmask" onPress={() => accounts()} />
+          {/* <Button title="coinbase" onPress={() => getCoinbase()} /> */}
         </View>
       </ScrollView>
     </SafeAreaView>
